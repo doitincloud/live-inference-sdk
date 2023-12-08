@@ -1,5 +1,6 @@
 const path = require('path');
 const isProduction = process.env.NODE_ENV == 'production';
+//const nodeExternals = require('webpack-node-externals');
 
 const config = {
     entry: './src/client.ts',
@@ -22,6 +23,7 @@ const config = {
     resolve: {
         extensions: ['.tsx', '.ts', '.jsx', '.js', '...'],
     },
+    //externals: [nodeExternals()],
 };
 
 module.exports = () => {

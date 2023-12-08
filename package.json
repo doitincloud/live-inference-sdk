@@ -1,6 +1,6 @@
 {
   "name": "@doitincloud/live-inference-sdk",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "LiveInference SDK for JavaScript",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -26,10 +26,10 @@
     "build:prod": "tsup && webpack --mode=production --node-env=production",
     "watch": "webpack --watch"
   },
-  "repository" : {
-    "type" : "git",
-    "url" : "https://github.com/doitincloud/live-inference-sdk.git"
-  }, 
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/doitincloud/live-inference-sdk.git"
+  },
   "homepage": "https://github.com/doitincloud/live-inference-sdk",
   "author": "Sam Wen",
   "devDependencies": {
@@ -37,14 +37,12 @@
     "@types/axios": "^0.14.0",
     "@types/jest": "^29.5.6",
     "@webpack-cli/generators": "^3.0.7",
-    "axios": "^1.6.2",
     "css-loader": "^6.8.1",
     "dotenv": "^16.3.1",
     "html-webpack-plugin": "^5.5.3",
     "jest": "^29.7.0",
     "jest-extended": "^4.0.2",
     "prettier": "^3.0.3",
-    "socket.io-client": "^4.7.2",
     "style-loader": "^3.3.3",
     "ts-loader": "^9.5.0",
     "tsup": "^7.2.0",
@@ -52,5 +50,9 @@
     "webpack": "^5.89.0",
     "webpack-cli": "^5.1.4",
     "workbox-webpack-plugin": "^7.0.0"
+  },
+  "dependencies": {
+    "axios": "^1.6.2",
+    "socket.io-client": "^4.7.2"
   }
 }
