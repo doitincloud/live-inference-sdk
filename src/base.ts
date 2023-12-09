@@ -56,12 +56,12 @@ export class Base implements types.Base {
         return await getResponse(url, options);
     }
 
-    public async cleanup(): Promise<void> {
+    public async cleanup(deleteToken = false): Promise<void> {
         if (this.refreshTimer) {
             clearTimeout(this.refreshTimer);
             this.refreshTimer = undefined;
         }
-        if (this.keyInfo?.key?.startsWith('ses-')) {
+        if (deleteToken && this.keyInfo?.key?.startsWith('ses-')) {
             try {
                 await this.request('/api/v1/auth/delete');
             } catch (e) {

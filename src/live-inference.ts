@@ -172,6 +172,13 @@ export class LiveInference extends EventEmitter {
         this.socket.emit('text', {type, content_type, content});
     }
 
+    public sendEchoTest(data: any): void {
+        if (!this.socket || !this.socket.connected || this.initializePhase !== 3) {
+            throw new Error('socket not initialized');
+        }
+        this.socket.emit('echo-test', data);
+    }
+
     private async startSocket() {
         if (this.debug) console.log('run startSocket');
         if (this.initializePhase === 0) {
@@ -199,10 +206,13 @@ export class LiveInference extends EventEmitter {
         });
         this.socket.on('connect', async () => {
             if (this.debug) console.log('socket connected');
+            if (this.initializePhase !== 1) {
+                console.error('on connect, invalid initialize phase', this.initializePhase);
+            }
             this.initializePhase = 2;
-            for (let i = 0; i < 10; i++) {
+            for (let i = 0; i < 20; i++) {
                 this.sendInitialize();
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, 334));
                 if (this.initializePhase === 3) break;
             }
         });
@@ -301,6 +311,14 @@ export class LiveInference extends EventEmitter {
                     this.emit('response', {request, data});
             }                
         });
+        this.socket.on('echo-test', (data: any) => {
+            if (this.debug) console.log('receive test', data);
+            this.socket.emit('test-received', data);
+        });
+        this.socket.on('test-received', (data: any) => {
+            if (this.debug) console.log('receive test-received confirmation', data);
+            this.emit('test-received', data);
+        });
         this.socket.on('disconnect', (reason: any) => {
             if (this.debug) console.log('disconnect', reason);
             this.destroy();
@@ -319,7 +337,7 @@ export class LiveInference extends EventEmitter {
         if (!this.socket || !this.socket.connected) throw new Error('socket not initialized');
         const { audio, video, store, ttsKey, maxDuration, progress, mode } = this;
         const options = { audio, video, store, ttsKey, sampleRate, maxDuration, progress, mode, timestamp: Date.now() };
-        if (this.debug) console.log('initialize', options);
+        if (this.debug) console.log('send initialize', options);
         this.socket.emit('initialize', options);
     }
 
