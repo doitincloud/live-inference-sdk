@@ -32,6 +32,16 @@ export class Client extends Base implements types.Client {
         this.updateKeyInfo({key: token, type, expires_at: expiresAt, ...options});
     }
 
+    public async getProps(): Promise<types.ClientProps> {
+        const { data } = await this.request('/api/v1/inference/props');
+        return data;
+    }
+
+    public async getChatCompleteOptions(): Promise<types.ChatCompletionsOptions> {
+        const { data } = await this.request('/api/v1/inference/chat-complete-options');
+        return data;
+    }
+
     public async getCurrentMessages(): Promise<types.InferenceCurrentMessages> {
         const { data } = await this.request('/api/v1/inference/messages');
         return data;

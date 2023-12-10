@@ -33,6 +33,12 @@ export function isPlainObject(val: any) : boolean {
 
 let unauthorizedCallback = isInBrowser() ? (message: string) => alert(message) : null;
 
+export function unauthorized(message: string) {
+    if (isInBrowser() && unauthorizedCallback) {
+        unauthorizedCallback(message);
+    }
+}
+
 export function setUnauthorizedCallback(callback: (message: string) => void) {
     if (typeof callback !== 'function') {
         throw new Error('callback must be a function');

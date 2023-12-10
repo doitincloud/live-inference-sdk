@@ -2,6 +2,7 @@
 import EventEmitter from 'events';
 import { io } from 'socket.io-client';
 import axios from 'axios';
+import { unauthorized } from './utils';
 import type * as types from './types';
 import { sampleRate, apiPath, moduleUrl, recordingInterval } from './config';
 
@@ -143,7 +144,7 @@ export class LiveInference extends EventEmitter {
         }
     }
 
-    public newSession(options: types.InferenceOptions | undefined = {}): void {
+    public newSession(options: types.ChatCompletionsOptions | undefined = {}): void {
         this.sendRequest('new-session', options);
     }
 
@@ -274,6 +275,11 @@ export class LiveInference extends EventEmitter {
                     }
                     case 'done': {
                         this.stop(true);
+                        break;
+                    }
+                    case 'invalid-token': {
+                        unauthorized('invalid token');
+                        this.stop();
                         break;
                     }
                     case 'error':

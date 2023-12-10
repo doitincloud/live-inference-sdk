@@ -247,7 +247,7 @@ export interface InferenceCurrentMessages {
     messages: InferenceMessage[],
 }
 
-export interface InferenceOptions {
+export interface ChatCompletionsOptions {
     system_prompt?: string,
     model?: string,
     max_tokens?: number,
@@ -290,4 +290,11 @@ export interface MediaFile {
 export interface MediaFilePage {
     data: MediaFile[],
     pagination: Pagination,
+}
+
+export interface ClientProps {
+    action: string, 
+    messages: InferenceMessage[],
+    history: InferenceHistoryItem[],
+    options: ChatCompletionsOptions,
 }
