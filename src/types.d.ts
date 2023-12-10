@@ -235,8 +235,9 @@ export interface InferenceMessage {
     content: string,
     timestamp: number,
     finish_reason: string,
+    name?: string,
     type?: string,
-    provider?: string,
+    provider?: string
 }
 
 export interface InferenceCurrentMessages {
@@ -244,6 +245,13 @@ export interface InferenceCurrentMessages {
     action: string,
     created_at: string,
     messages: InferenceMessage[],
+}
+
+export interface InferenceOptions {
+    system_prompt?: string,
+    model?: string,
+    max_tokens?: number,
+    temperature?: number
 }
 
 export interface InferenceHistoryItem {

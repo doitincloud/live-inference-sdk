@@ -143,8 +143,8 @@ export class LiveInference extends EventEmitter {
         }
     }
 
-    public newSession(): void {
-        this.sendRequest('new-session', { });
+    public newSession(options: types.InferenceOptions | undefined = {}): void {
+        this.sendRequest('new-session', options);
     }
 
     public loadSession(id: number): void {
