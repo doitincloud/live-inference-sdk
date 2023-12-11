@@ -13,14 +13,20 @@ export interface Base {
 }
 
 export interface Client extends Base {
+    getProps(): Promise<ClientProps>;
+    getChatCompleteOptions(): Promise<ChatCompletionsOptions>;
     getCurrentMessages(): Promise<InferenceCurrentMessages>;
     getHistory(page?: number, size?: number): Promise<InferenceHistoryPage>;
     getFiles(page?: number, size?: number): Promise<MediaFilePage>;
 }
 
 export interface ServerClient extends Base {
-    createSession({ expires_in_minutes, customer_id, scopes, origin } : KeyCreateOptions) : Promise<KeyInfo>;
-    deleteSession(key: string) : Promise<StatusInfo>;
+    createApiKey(options : KeyCreateOptions) : Promise<ExKeyInfoOptions>;
+    createSession(options : KeyCreateOptions) : Promise<ExKeyInfoOptions>;
+    getInfo(key: string) : Promise<ExKeyInfoOptions>;
+    disableKey(key: string) : Promise<StatusInfo>;
+    getFiles(idKey: string, page?: number, size?: number): Promise<MediaFilePage>;
+    getHistory(idKey: string, page?: number, size?: number): Promise<MediaFilePage>;
     setParams(data : any) : Promise<any>;
     getParams() : Promise<any>;
     updateParams(data : any) : Promise<any>;
@@ -62,8 +68,16 @@ export interface ExKeyInfoOptions {
     expires_at: Date | String | null,
     type?: string,
     scopes?: string[],
-    customer_id?: string,   // session key only
-    name?: string           // api key only
+    customer_id?: string,           // session key only
+    name?: string                   // api key only
+    enabled?: boolean,              // info only
+    expired?: boolean,              // info only
+    last_used_at?: Date | String | null,  // info only
+    usage_count?: number,           // info only
+    created_at?: Date | String,     // info only
+    updated_at?: Date | String,     // info only
+    data?: any,             
+    params?: any,           
 }
 
 export interface Params {
@@ -95,10 +109,12 @@ export interface KeyInfo {
 
 export interface KeyCreateOptions {
     expires_in_minutes?: number,
+    expires_in_days?: number,
     customer_id?: string,
     scopes?: string[], 
     origin?: string, 
     data?: any,
+    params?: any,
 }
 
 export interface RequestOptions {
@@ -248,8 +264,10 @@ export interface InferenceCurrentMessages {
 }
 
 export interface ChatCompletionsOptions {
-    system_prompt?: string,
-    model?: string,
+    title: string, 
+    system_prompt: string,
+    provider: string,
+    model: string,
     max_tokens?: number,
     temperature?: number
 }
@@ -296,5 +314,5 @@ export interface ClientProps {
     action: string, 
     messages: InferenceMessage[],
     history: InferenceHistoryItem[],
-    options: ChatCompletionsOptions,
+    options: ChatCompletionsOptions[],
 }

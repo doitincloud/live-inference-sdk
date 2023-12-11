@@ -38,7 +38,7 @@ export class Client extends Base implements types.Client {
     }
 
     public async getChatCompleteOptions(): Promise<types.ChatCompletionsOptions> {
-        const { data } = await this.request('/api/v1/inference/chat-complete-options');
+        const { data } = await this.request('/api/v1/inference/chat-completions-options');
         return data;
     }
 
@@ -47,12 +47,12 @@ export class Client extends Base implements types.Client {
         return data;
     }
 
-    public async getHistory(page = 1, size = 250): Promise<types.InferenceHistoryPage> {
+    public async getHistory(page: number = 1, size: number = 250): Promise<types.InferenceHistoryPage> {
         const { data, pagination } = await this.request(`/api/v1/inference/history?page=${page}&size=${size}`);
         return { data, pagination };
     }
 
-    public async getFiles(page = 1, size = 250): Promise<types.MediaFilePage> {
+    public async getFiles(page: number = 1, size: number = 250): Promise<types.MediaFilePage> {
         const { data, pagination } = await this.request(`/api/v1/inference/files?page=${page}&size=${size}`) || {};
         return { data, pagination };
     }

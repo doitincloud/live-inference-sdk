@@ -38,15 +38,34 @@ export class ServerClient extends Base {
         }
     }
 
+    public async getProps(key: string) : Promise<{data : types.ClientProps, error: any}> {
+        return await this.request('/api/v1/inference/props/' + key);
+    }
+
     public async createSession(options : types.KeyCreateOptions = {}) : Promise<{data: types.ExKeyInfoOptions, error: any}> {
         return await this.request('/api/v1/auth/session-key', { body: options });
     }
 
-    public async deleteSession(key: string) : Promise<types.StatusInfo> {
-        if (!key.startsWith('ses-')) {
-            throw new Error('session key must start with ses-');
-        }
-        return await this.request('/api/v1/auth/delete/' + key);
+    public async createApiKey(options : types.KeyCreateOptions = {}) : Promise<{data: types.ExKeyInfoOptions, error: any}> {
+        return await this.request('/api/v1/auth/api-key', { body: options });
+    }
+
+    public async getInfo(key: string) : Promise<{data: types.ExKeyInfoOptions, error: any}> {
+        return await this.request('/api/v1/auth/info/' + key);
+    }
+
+    public async disableKey(key: string) : Promise<types.StatusInfo> {
+        return await this.request('/api/v1/auth/disable/' + key);
+    }
+
+    public async getFiles(idKey: string, page: number = 1, size: number = 250): Promise<types.MediaFilePage> {
+        const { data, pagination } = await this.request(`/api/v1/inference/files/${idKey}?page=${page}&size=${size}`) || {};
+        return { data, pagination };
+    }
+
+    public async getHistory(idKey: string, page: number = 1, size: number = 250): Promise<types.MediaFilePage> {
+        const { data, pagination } = await this.request(`/api/v1/inference/history/${idKey}?page=${page}&size=${size}`) || {};
+        return { data, pagination };
     }
 
     public async setParams(data : any) : Promise<any> {

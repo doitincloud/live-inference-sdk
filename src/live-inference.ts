@@ -144,7 +144,7 @@ export class LiveInference extends EventEmitter {
         }
     }
 
-    public newSession(options: types.ChatCompletionsOptions | undefined = {}): void {
+    public newSession(options: types.ChatCompletionsOptions): void {
         this.sendRequest('new-session', options);
     }
 
