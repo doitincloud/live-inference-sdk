@@ -1,11 +1,11 @@
 
-const api_base_url = 'https://api.doitincloud.com';
+const api_base_url = 'https://api.liveinference.com';
 
 const sampleRate = 22050;                          // options 16000, 22050, 24000, 44100, 48000
 
 const apiPath = '/api/v1/inference/stream';
 
-const moduleUrl = 'https://cdn.doitincloud.com/live-inference/worklet/v1.0.0/worklet.js'; //'worklet.js';
+const moduleUrl = 'https://cdn.doitincloud.com/live-inference/worklet/v1.0.0/worklet.js';
 
 const recordingInterval = 3000;                    // milliseconds
 
