@@ -383,7 +383,8 @@ export class LiveInference extends EventEmitter {
                 if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
                     this.mediaOptions = {mimeType: 'audio/webm; codecs=opus'};
                 } else {
-                    throw new Error('no supported audio media options');
+                    console.error('no supported audio media options 1');
+                    this.mediaOptions = {};
                 }
             } else {
                 if (MediaRecorder.isTypeSupported('video/webm;codecs="vp9,opus"')) {
@@ -393,7 +394,8 @@ export class LiveInference extends EventEmitter {
                 } else if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')) {
                     this.mediaOptions = {mimeType: 'video/mp4; codecs=avc1'}; // for safari, tested, issue keep loading, need more work
                 } else {
-                    throw new Error('no supported video media options');
+                    console.error('no supported video media options 2');
+                    this.mediaOptions = {};
                 }
             }
             if (this.debug) console.log('media options', this.mediaOptions);
@@ -418,6 +420,7 @@ export class LiveInference extends EventEmitter {
     private startMediaRecorder(): void {
         const startMs = Date.now();
         const options = this.getMediaOptions();
+        if (!options.mimeType) return;
         this.mediaRecorder = new MediaRecorder(this.mediaStream, options);
         const chunks : any [] = [];
         this.mediaRecorder.ondataavailable = (event: BlobEvent) => {
@@ -447,6 +450,7 @@ export class LiveInference extends EventEmitter {
 
     private async sendUrlsRequest(wait = false) {
         const { mimeType } = this.getMediaOptions();
+        if (mimeType) return;
         const [ type, ext ] = mimeType.split(';')[0].split('/');
         let count = 1;
         if (this.mediaSaveUrls.length === 0) {
