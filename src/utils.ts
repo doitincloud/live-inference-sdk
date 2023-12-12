@@ -7,8 +7,8 @@ import { api_base_url } from './config';
 let apiBaseUrl = api_base_url;
 
 if (!isInBrowser()) {
-    if (process.env.URL) {
-        apiBaseUrl = process.env.URL;
+    if (process.env.LIVEINFERENCE_API_URL) {
+        apiBaseUrl = process.env.LIVEINFERENCE_API_URL;
     } else if (process.env.NODE_ENV !== 'production') { // for development
         apiBaseUrl = 'http://localhost:4321';
     }
