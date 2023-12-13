@@ -208,7 +208,7 @@ export class LiveInference extends EventEmitter {
         this.socket.on('connect', async () => {
             if (this.debug) console.log('socket connected');
             if (this.initializePhase !== 1) {
-                console.error('on connect, invalid initialize phase', this.initializePhase);
+                console.log('Error: on connect, invalid initialize phase', this.initializePhase);
             }
             this.initializePhase = 2;
             for (let i = 0; i < 20; i++) {
@@ -236,7 +236,7 @@ export class LiveInference extends EventEmitter {
             } else if (src.src) {
                 this.emit('image', src);
             } else {
-                console.error('invalid image src', src);
+                console.log('Error: invalid image src', src);
             }
         });
         this.socket.on('audio', (src: string | any) => {
@@ -248,7 +248,7 @@ export class LiveInference extends EventEmitter {
                 const audioUrl = URL.createObjectURL(blob);
                 this.emit('audio', audioUrl);
             } else {
-                console.error('invalid audio src', src);
+                console.log('Error: invalid audio src', src);
             }
         });
         this.socket.on('video', (src: string | any) => {
@@ -260,7 +260,7 @@ export class LiveInference extends EventEmitter {
                 const videoUrl = URL.createObjectURL(blob);
                 this.emit('video', videoUrl);
             } else {
-                console.error('invalid video src', src);
+                console.log('Error: invalid video src', src);
             }
         });
         this.socket.on('status', (status: string) => {
@@ -290,7 +290,7 @@ export class LiveInference extends EventEmitter {
                         break;
                     }
                     default:
-                        console.error('unhandled status', status);
+                        console.log('Error: unhandled status', status);
                         this.stop();
                 }
         });
@@ -360,7 +360,7 @@ export class LiveInference extends EventEmitter {
         this.audioWorkletNode.port.onmessage = ({ data }) => {
             if (!this.audioWorkletNode || !this.socket || !this.mediaStream || !data) return;
             if (!this.socket.connected) {
-                console.error('onmessage, socket not connected');
+                console.log('Error: onmessage, socket not connected');
                 return;
             }
             //console.log('audio-worklet-node message', data);
@@ -383,7 +383,7 @@ export class LiveInference extends EventEmitter {
                 if (MediaRecorder.isTypeSupported('audio/webm;codecs=opus')) {
                     this.mediaOptions = {mimeType: 'audio/webm; codecs=opus'};
                 } else {
-                    console.error('no supported audio media options 1');
+                    console.log('Error: no supported audio media options 1');
                     this.mediaOptions = {};
                 }
             } else {
@@ -394,7 +394,7 @@ export class LiveInference extends EventEmitter {
                 } else if (MediaRecorder.isTypeSupported('video/mp4;codecs=avc1')) {
                     this.mediaOptions = {mimeType: 'video/mp4; codecs=avc1'}; // for safari, tested, issue keep loading, need more work
                 } else {
-                    console.error('no supported video media options 2');
+                    console.log('Error: no supported video media options 2');
                     this.mediaOptions = {};
                 }
             }
@@ -444,7 +444,7 @@ export class LiveInference extends EventEmitter {
             await axios.put(url, blob, { headers: { 'Content-Type': type } });
             this.sendRequest('saved-file', { bucket, key, size: blob.size, type, startMs, endMs, duration: Math.round((endMs - startMs) / 100) / 10 });
         } catch (e) {
-            console.error('failed to save file', e);
+            console.log('Error: failed to save file', e);
         }
     }
 
