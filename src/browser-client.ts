@@ -33,27 +33,42 @@ export class Client extends Base implements types.Client {
     }
 
     public async getProps(): Promise<types.ClientProps> {
-        const { data } = await this.request('/api/v1/inference/props');
+        const { data, error } = await this.request('/api/v1/inference/props');
+        if (!data || error) {
+            throw new Error(error?.message || 'failed to get props');
+        }
         return data;
     }
 
     public async getChatCompleteOptions(): Promise<types.ChatCompletionsOptions> {
-        const { data } = await this.request('/api/v1/inference/chat-completions-options');
+        const { data, error } = await this.request('/api/v1/inference/chat-completions-options');
+        if (!data || error) {
+            throw new Error(error?.message || 'failed to get chat completions options');
+        }
         return data;
     }
 
     public async getCurrentMessages(): Promise<types.InferenceCurrentMessages> {
-        const { data } = await this.request('/api/v1/inference/messages');
+        const { data, error } = await this.request('/api/v1/inference/messages');
+        if (!data || error) {
+            throw new Error(error?.message || 'failed to get current messages');
+        }
         return data;
     }
 
     public async getHistory(page: number = 1, size: number = 250): Promise<types.InferenceHistoryPage> {
-        const { data, pagination } = await this.request(`/api/v1/inference/history?page=${page}&size=${size}`);
+        const { data, pagination, error } = await this.request(`/api/v1/inference/history?page=${page}&size=${size}`);
+        if (!data || error) {
+            throw new Error(error?.message || 'failed to get history');
+        }
         return { data, pagination };
     }
 
     public async getFiles(page: number = 1, size: number = 250): Promise<types.MediaFilePage> {
-        const { data, pagination } = await this.request(`/api/v1/inference/files?page=${page}&size=${size}`) || {};
+        const { data, pagination, error } = await this.request(`/api/v1/inference/files?page=${page}&size=${size}`);
+        if (!data || error) {
+            throw new Error(error?.message || 'failed to get files');
+        }
         return { data, pagination };
     }
 }

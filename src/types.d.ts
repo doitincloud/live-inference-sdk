@@ -2,35 +2,42 @@ import type { EventEmitter } from 'events';
 
 export interface Base {
     eventEmitter : EventEmitter | undefined;
-    getAuthKey() : string; 
+    setApiBaseUrl(url: string) : void;
+    getApiBaseUrl() : string;
+    getAuthKey() : string;
     isExpired() : boolean;
     getKeyInfo(refetch: boolean) : Promise<KeyInfo>;
-    getApiBaseUrl() : string;
-    request(path : string, options : RequestOptions) : Promise<any>;
+    request(path : string, options : RequestOptions) : Promise<ApiRequestResult>;
     getResponse(url : string, options : RequestOptions) : Promise<any>;
-    cleanup(): Promise<void>;
-    setRefreshUrl(url: string): void;
+    cleanup(disableToken: boolean): Promise<void>;
+    setRefreshUrl(url : string) : void;
 }
 
 export interface Client extends Base {
     getProps(): Promise<ClientProps>;
     getChatCompleteOptions(): Promise<ChatCompletionsOptions>;
     getCurrentMessages(): Promise<InferenceCurrentMessages>;
-    getHistory(page?: number, size?: number): Promise<InferenceHistoryPage>;
-    getFiles(page?: number, size?: number): Promise<MediaFilePage>;
+    getHistory(page: number, size: number): Promise<InferenceHistoryPage>;
+    getFiles(page: number, size: number): Promise<MediaFilePage>;
 }
 
 export interface ServerClient extends Base {
-    createApiKey(options : KeyCreateOptions) : Promise<ExKeyInfoOptions>;
-    createSession(options : KeyCreateOptions) : Promise<ExKeyInfoOptions>;
-    getInfo(key: string) : Promise<ExKeyInfoOptions>;
-    disableKey(key: string) : Promise<StatusInfo>;
-    getFiles(idKey: string, page?: number, size?: number): Promise<MediaFilePage>;
-    getHistory(idKey: string, page?: number, size?: number): Promise<MediaFilePage>;
-    setParams(data : any) : Promise<any>;
-    getParams() : Promise<any>;
-    updateParams(data : any) : Promise<any>;
-    resetParams() : Promise<any>;
+    getProps(key: string) : Promise<ApiRequestResult>;
+    createSession(options : KeyCreateOptions) : Promise<ApiRequestResult>;
+    createApiKey(options : KeyCreateOptions) : Promise<ApiRequestResult>;
+    getInfo(key: string) : Promise<ApiRequestResult>;
+    disableKey(key: string) : Promise<ApiRequestResult>;
+    getFiles(idKey: string, page: number, size: number): Promise<MediaFilePage>
+    getHistory(idKey: string, page: number, size: number): Promise<MediaFilePage>;
+    setParams(data : any) : Promise<ApiRequestResult>;
+    getParams() : Promise<ApiRequestResult>;
+    updateParams(data : any) : Promise<ApiRequestResult>;
+    resetParams() : Promise<ApiRequestResult>;
+    getApiSession(userId: string): Promise<ApiSessionResult | null>;
+    linkApiSession(userId: string, apiSessionToken: string, apiSessionExpires: number): Promise<boolean>;
+    unlinkApiSession(userId: string): Promise<boolean>;
+    createApiSession(userId: string, email: string, expiresInMinutes: number): Promise<ApiSessionResult>;
+    syncApiSession(userId: string, email: string, expiresInMinutes: number, minimaExpiresInMinutes: number) : Promise<ApiSessionResult>;
 }
 
 export interface ClientCreateOptions {
@@ -124,11 +131,6 @@ export interface RequestOptions {
     headers?: Headers
     useQuery?: boolean,
     apiCall?: boolean,
-}
-
-export interface StatusInfo {
-    status: string,
-    message?: string,
 }
 
 export interface AudioInferenceOptions  {
@@ -281,11 +283,26 @@ export interface InferenceHistoryItem {
     ctx_id?: string,
 }
 
+export interface StatusInfo {
+    status: string,
+    message?: string,
+}
+
 export interface Pagination {
     page: number,
     size: number,
     total: number,
     total_pages: number,
+}
+
+export interface ApiError {
+    message: string,
+}
+
+export interface ApiRequestResult {
+    error?: ApiError,
+    data?: any,
+    pagination?: Pagination,
 }
 
 export interface InferenceHistoryPage {
@@ -315,4 +332,9 @@ export interface ClientProps {
     messages: InferenceMessage[],
     history: InferenceHistoryItem[],
     options: ChatCompletionsOptions[],
+}
+
+export interface ApiSessionResult {
+    apiSessionToken: string,
+    apiSessionExpires: number,
 }

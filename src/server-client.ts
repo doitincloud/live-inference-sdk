@@ -38,23 +38,23 @@ export class ServerClient extends Base {
         }
     }
 
-    public async getProps(key: string) : Promise<{data : types.ClientProps, error: any}> {
+    public async getProps(key: string) : Promise<types.ApiRequestResult> {
         return await this.request('/api/v1/inference/props/' + key);
     }
 
-    public async createSession(options : types.KeyCreateOptions = {}) : Promise<{data: types.ExKeyInfoOptions, error: any}> {
+    public async createSession(options : types.KeyCreateOptions = {}) : Promise<types.ApiRequestResult> {
         return await this.request('/api/v1/auth/session-key', { body: options });
     }
 
-    public async createApiKey(options : types.KeyCreateOptions = {}) : Promise<{data: types.ExKeyInfoOptions, error: any}> {
+    public async createApiKey(options : types.KeyCreateOptions = {}) : Promise<types.ApiRequestResult> {
         return await this.request('/api/v1/auth/api-key', { body: options });
     }
 
-    public async getInfo(key: string) : Promise<{data: types.ExKeyInfoOptions, error: any}> {
+    public async getInfo(key: string) : Promise<types.ApiRequestResult> {
         return await this.request('/api/v1/auth/info/' + key);
     }
 
-    public async disableKey(key: string) : Promise<types.StatusInfo> {
+    public async disableKey(key: string) : Promise<types.ApiRequestResult> {
         return await this.request('/api/v1/auth/disable/' + key);
     }
 
@@ -68,19 +68,79 @@ export class ServerClient extends Base {
         return { data, pagination };
     }
 
-    public async setParams(data : any) : Promise<any> {
+    public async setParams(data : any) : Promise<types.ApiRequestResult> {
         return await this.request('/api/v1/params', { method: 'POST', body: data});
     }
 
-    public async getParams() : Promise<any> {
+    public async getParams() : Promise<types.ApiRequestResult> {
         return await this.request('/api/v1/params');
     }
 
-    public async updateParams(data : any) : Promise<any> {
+    public async updateParams(data : any) : Promise<types.ApiRequestResult> {
         return await this.request('/api/v1/params', { method: 'PUT', body: data});
     }
 
-    public async resetParams() : Promise<any> {
+    public async resetParams() : Promise<types.ApiRequestResult> {
         return await this.request('/api/v1/params', { method: 'DELETE' });
     }
+
+    async getApiSession(userId: string): Promise<types.ApiSessionResult | null> {
+        const { data, error } = await this.request('/api/v1/user/api-session-link/' + userId);
+        if (!data || error) return null;
+        return data;
+    }
+
+    async linkApiSession(userId: string, apiSessionToken: string, apiSessionExpires: number): Promise<boolean> {
+        if (!userId) {
+            throw new Error("userId is required");
+        }
+        if (!apiSessionToken) {
+            throw new Error("apiSessionToken is required");
+        }
+        if (!apiSessionExpires) {
+            throw new Error("apiSessionExpires is required");
+        }
+        const body = { userId, apiSessionToken, apiSessionExpires };
+        const { error } = await this.request('/api/v1/user/api-session-link', 
+            { method: 'POST', body });
+        if (error) return false;   
+        else return true;
+    }
+
+    async unlinkApiSession(userId: string): Promise<boolean> {
+        const { error } = await this.request('/api/v1/user/api-session-link/' + userId, 
+            { method: 'DELETE' });
+        if (error) return false;   
+        else return true;
+    }
+
+    async createApiSession(userId: string, email: string, expiresInMinutes: number): Promise<types.ApiSessionResult> {
+        const { data: {key: apiSessionToken, expires_at}, error } = 
+            await this.createSession({
+                expires_in_minutes: expiresInMinutes, 
+                customer_id: email || userId
+            });
+        if (error) {
+            throw new Error(error.message);
+        }
+        let apiSessionExpires: number;
+        if (typeof expires_at === 'string') {
+            apiSessionExpires = Math.round(new Date(expires_at).getTime() / 1000);
+        } else {
+            apiSessionExpires = Math.round((expires_at as Date).getTime() / 1000);
+        }
+        return { apiSessionToken, apiSessionExpires };
+    }
+
+    async syncApiSession(userId: string, email: string, expiresInMinutes: number = 120, minimaExpiresInMinutes: number = 15) : Promise<types.ApiSessionResult> {
+        let { apiSessionToken, apiSessionExpires } = await this.getApiSession(userId) || {};
+        if (!apiSessionToken || !apiSessionExpires || apiSessionExpires * 1000 - Date.now() < minimaExpiresInMinutes * 60000) {
+            const result = await this.createApiSession(userId, email, expiresInMinutes);
+            apiSessionToken = result.apiSessionToken;
+            apiSessionExpires = result.apiSessionExpires;
+            await this.linkApiSession(userId, apiSessionToken, apiSessionExpires);
+            return { apiSessionToken, apiSessionExpires };
+        }
+        return { apiSessionToken, apiSessionExpires };
+    } 
 }

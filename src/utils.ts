@@ -9,14 +9,16 @@ let apiBaseUrl = api_base_url;
 if (!isInBrowser()) {
     if (process.env.LIVEINFERENCE_API_URL) {
         apiBaseUrl = process.env.LIVEINFERENCE_API_URL;
-    } else if (process.env.NODE_ENV !== 'production') { // for development
-        apiBaseUrl = 'http://localhost:4321';
     }
-} else {
-    const { origin } = window.location;
-    if (origin.indexOf('http://localhost') === 0) { // for development
-        apiBaseUrl = 'http://localhost:4321';
+}
+
+// a helper function to set the api base url
+//
+export function setApiBaseUrl(url: string) {
+    if (!url) {
+        throw new Error('url is required');
     }
+    apiBaseUrl = url;
 }
 
 // a helper function to get the api base url
@@ -30,6 +32,9 @@ export function getApiBaseUrl() : string {
 export function isPlainObject(val: any) : boolean {
     return !!val && typeof val === 'object' && val.constructor === Object;
 }
+
+// mechanism to handle unauthorized error
+//
 
 let unauthorizedCallback = isInBrowser() ? (message: string) => alert(message) : null;
 
@@ -51,7 +56,7 @@ export function setUnauthorizedCallback(callback: (message: string) => void) {
 export async function getKeyInfo(key?: string, useQuery?: boolean) : Promise<types.KeyInfo> {
     try {
         const { data, error } = await request('/api/v1/auth/me', { key, useQuery });
-        if (!data) {
+        if (!data || error) {
             throw new Error(error?.message || 'failed to get key info');
         }
         return data;
@@ -84,13 +89,16 @@ export function withAuth(url: string, key: string, headers?: Headers) :  string 
     return url;
 }
 
-// a wrapper around request that returns json object
+// a wrapper around getResponse that returns json object
+// to return ApiRequestResult object
 //
-export async function request(url: string, options : types.RequestOptions = {}) : Promise<any> {
+export async function request(url: string, options : types.RequestOptions = {}) : Promise<types.ApiRequestResult> {
     const response = await getResponse(url, options);
     const json = await response.json();
-    if (!response.ok && !json.error) {
-        json.error = { message: response.statusText };
+    if (!response.ok) {
+        if (!json.error) json.error = { message: response.statusText };
+    } else if (!json.data) {
+        throw new Error('invalid response from server');
     }
     return json;
 }
@@ -144,7 +152,8 @@ export async function getResponse(url: string, {
         method = 'GET';
     }
     const fetchOptions: RequestInit = { method, headers, body, cache: 'no-store' };
-    if (inBrowser && apiCall) { // !key means we are counting on the browser to send the cookie
+    if (inBrowser && apiCall) { 
+        // !key means we are counting on the browser to send the cookie
         if (!key || headers.has('Authorization')) {
             fetchOptions.mode = 'cors';
             fetchOptions.credentials = 'include';

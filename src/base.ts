@@ -1,16 +1,27 @@
 import type * as types from './types';
 import isInBrowser from './is-in-browser';
-import { getKeyInfo, request, getResponse, getApiBaseUrl } from './utils';
+import { 
+    getKeyInfo, 
+    request, 
+    getResponse, 
+    setApiBaseUrl, 
+    getApiBaseUrl 
+} from './utils';
 import type { EventEmitter } from 'events';
 
 const refreshMinutesBeforeExpiration = 5;
 
 export class Base implements types.Base {
 
-    public keyInfo : types.KeyInfo | undefined;
-    public refreshTimer : any | undefined;
-    public refreshUrl : string | undefined;
     public eventEmitter : EventEmitter | undefined;
+
+    protected keyInfo : types.KeyInfo | undefined;
+    protected refreshTimer : any | undefined;
+    protected refreshUrl : string | undefined;
+
+    public setApiBaseUrl(url: string) : void {
+        setApiBaseUrl(url);
+    }
 
     public getApiBaseUrl() : string {
         return getApiBaseUrl();
@@ -41,14 +52,9 @@ export class Base implements types.Base {
         return this.keyInfo!;
     }
 
-    public async request(path : string, options : types.RequestOptions = {}) : Promise<any> {
+    public async request(path : string, options : types.RequestOptions = {}) : Promise<types.ApiRequestResult> {
         if (!options.key) options.key = this.getAuthKey();
-        if (options.useQuery === undefined) options.useQuery = false;
-        const result = await request(path, options);
-        if (!result.data && result.error) {
-            throw new Error(result.error.message || 'request failed - ' + path);
-        }
-        return result;
+        return await request(path, options);
     }
 
     public async getResponse(url : string, options : types.RequestOptions = {}) : Promise<any> {
@@ -56,17 +62,13 @@ export class Base implements types.Base {
         return await getResponse(url, options);
     }
 
-    public async cleanup(deleteToken = false): Promise<void> {
+    public async cleanup(disableToken = false): Promise<void> {
         if (this.refreshTimer) {
             clearTimeout(this.refreshTimer);
             this.refreshTimer = undefined;
         }
-        if (deleteToken && this.keyInfo?.key?.startsWith('ses-')) {
-            try {
-                await this.request('/api/v1/auth/delete');
-            } catch (e) {
-                //console.error('failed to delete session', e);
-            }
+        if (disableToken && this.keyInfo?.key?.startsWith('ses-')) {
+            await this.request('/api/v1/auth/disable');
         }
         this.keyInfo = undefined;
     }
@@ -141,11 +143,14 @@ export class Base implements types.Base {
             return;
         }
         let timeout = expires_at.getTime() - Date.now() - refreshMinutesBeforeExpiration * 60 * 1000;
-        if (timeout < 0)timeout = 0;
+        if (timeout < 0) timeout = 0;
         this.refreshTimer = setTimeout(async () => {
             try {
-                const json = await request(this.refreshUrl, { apiCall: false });
-                this.updateKeyInfo(json);
+                const { data, error} = await request(this.refreshUrl, { apiCall: false });
+                if (!data || error) {
+                    throw new Error(error.message || 'failed to refresh key info');
+                }
+                this.updateKeyInfo(data);
                 if (this.eventEmitter) this.eventEmitter.emit('key-refreshed');
             } catch (e) {
                 console.error('failed to refresh key info', e);
